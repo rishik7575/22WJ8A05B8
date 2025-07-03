@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logger Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .log-entry {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .log-entry.error {
+            border-left-color: #dc3545;
+        }
+
+        .log-entry.warning {
+            border-left-color: #ffc107;
+        }
+
+        .log-entry.info {
+            border-left-color: #17a2b8;
+        }
+
+        .log-entry.debug {
+            border-left-color: #6c757d;
+        }
+
+        .status {
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Logger Dashboard</h1>
+            <p>Send logs to the evaluation service</p>
+        </div>
+        
+        <div class="content">
+            <form id="logForm">
+                <div class="form-group">
+                    <label for="stack">Application Stack:</label>
+                    <select id="stack" required>
+                        <option value="">Select stack...</option>
+                        <option value="frontend">Frontend</option>
+                        <option value="backend">Backend</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="level">Log Level:</label>
+                    <select id="level" required>
+                        <option value="">Select level...</option>
+                        <option value="debug">Debug</option>
+                        <option value="info">Info</option>
+                        <option value="warn">Warning</option>
+                        <option value="error">Error</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="package">Package Name:</label>
+                    <input type="text" id="package" placeholder="e.g., api, auth, db, validation" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Log Message:</label>
+                    <textarea id="message" placeholder="Enter your log message here..." required></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">📤 Send Log</button>
+                    <button type="button" class="btn-secondary" onclick="runTests()">🧪 Run Tests</button>
+                </div>
+            </form>
+
+            <div id="results" class="results" style="display: none;">
+                <h3>📋 Results</h3>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('logForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                stack: document.getElementById('stack').value,
+                level: document.getElementById('level').value,
+                package: document.getElementById('package').value,
+                message: document.getElementById('message').value
+            };
+
+            try {
+                const response = await fetch('/api/log', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                showResult([{
+                    ...formData,
+                    status: response.ok ? 'success' : 'failed',
+                    error: result.error || null,
+                    data: result.data || null
+                }]);
+
+            } catch (error) {
+                showResult([{
+                    ...formData,
+                    status: 'failed',
+                    error: error.message
+                }]);
+            }
+        });
+
+        async function runTests() {
+            try {
+                const response = await fetch('/api/test');
+                const result = await response.json();
+                showResult(result.results);
+            } catch (error) {
+                showResult([{
+                    status: 'failed',
+                    error: error.message
+                }]);
+            }
+        }
+
+        function showResult(results) {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultContent');
+            
+            contentDiv.innerHTML = results.map(result => `
+                <div class="log-entry ${result.level || ''}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong>${result.stack || 'Test'} - ${result.level || 'unknown'} - ${result.package || 'unknown'}</strong>
+                        <span class="status ${result.status}">${result.status}</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">${result.message || 'No message'}</div>
+                    ${result.error ? `<div style="color: #dc3545; font-size: 14px;">❌ ${result.error}</div>` : ''}
+                    ${result.data ? `<div style="color: #28a745; font-size: 14px;">✅ Log sent successfully</div>` : ''}
+                </div>
+            `).join('');
+            
+            resultsDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
