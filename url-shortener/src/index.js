@@ -13,6 +13,10 @@ window.addEventListener('unhandledrejection', (event) => {
   Logger.error(`Unhandled promise rejection: ${event.reason}`);
 });
 
+// index.js - Entry point for the React app
+// Kicks off the whole show.
+// Written by a human (who loves React)
+// TODO: Add service worker for offline support!
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

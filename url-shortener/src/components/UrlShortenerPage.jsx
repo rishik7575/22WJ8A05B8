@@ -10,6 +10,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { isValidUrl, isValidShortcode, isValidExpiryTime, generateShortcode, formatDate } from '../utils/validators';
 import Logger from '../utils/logger';
 
+// UrlShortenerPage.jsx - Main page for shortening URLs
+// This page lets you shrink your links and feel like a wizard.
+// Written by a human (with a little help from the internet)
+// TODO: Add dark mode support!
+
 const UrlShortenerPage = () => {
     // State for URL inputs (up to 5)
     const [urlInputs, setUrlInputs] = useState([
@@ -26,11 +31,11 @@ const UrlShortenerPage = () => {
     const addUrlInput = () => {
         if (urlInputs.length < 5) {
             setUrlInputs([...urlInputs, { longUrl: '', shortcode: '', expiryMinutes: '30' }]);
-            Logger.info('Added new URL input field');
+            Logger.info('🆕 Added new URL input field');
         } else {
             setAlert({
                 open: true,
-                message: 'Maximum 5 URLs allowed at once',
+                message: '🚫 Maximum 5 URLs allowed at once',
                 severity: 'warning'
             });
             Logger.warn('Attempted to add more than 5 URL inputs');
@@ -42,7 +47,7 @@ const UrlShortenerPage = () => {
         const newInputs = [...urlInputs];
         newInputs.splice(index, 1);
         setUrlInputs(newInputs);
-        Logger.info(`Removed URL input field at index ${index}`);
+        Logger.info(`🗑️ Removed URL input field at index ${index}`);
     };
     
     // Handle input changes
@@ -60,7 +65,7 @@ const UrlShortenerPage = () => {
             if (!isValidUrl(longUrl)) {
                 setAlert({
                     open: true,
-                    message: `URL #${i+1} is invalid`,
+                    message: `❌ URL #${i+1} is invalid`,
                     severity: 'error'
                 });
                 return false;
@@ -69,7 +74,7 @@ const UrlShortenerPage = () => {
             if (!isValidShortcode(shortcode)) {
                 setAlert({
                     open: true,
-                    message: `Shortcode for URL #${i+1} is invalid (must be 4-10 alphanumeric characters)`,
+                    message: `❌ Shortcode for URL #${i+1} is invalid (must be 4-10 alphanumeric characters)`,
                     severity: 'error'
                 });
                 return false;
@@ -78,7 +83,7 @@ const UrlShortenerPage = () => {
             if (!isValidExpiryTime(expiryMinutes)) {
                 setAlert({
                     open: true,
-                    message: `Expiry time for URL #${i+1} is invalid`,
+                    message: `❌ Expiry time for URL #${i+1} is invalid`,
                     severity: 'error'
                 });
                 return false;
@@ -93,7 +98,7 @@ const UrlShortenerPage = () => {
         if (new Set(shortcodes).size !== shortcodes.length) {
             setAlert({
                 open: true,
-                message: 'Duplicate shortcodes detected',
+                message: '❌ Duplicate shortcodes detected',
                 severity: 'error'
             });
             Logger.error('Duplicate shortcodes detected in form submission');
@@ -111,7 +116,7 @@ const UrlShortenerPage = () => {
             return;
         }
         
-        Logger.info('URL shortening form submitted');
+        Logger.info('📝 URL shortening form submitted');
         
         // Process each URL
         const newShortenedUrls = urlInputs.map(input => {
@@ -151,7 +156,7 @@ const UrlShortenerPage = () => {
         
         setAlert({
             open: true,
-            message: `Successfully shortened ${newShortenedUrls.length} URL(s)`,
+            message: `🎉 Successfully shortened ${newShortenedUrls.length} URL(s)!`,
             severity: 'success'
         });
         
@@ -163,7 +168,7 @@ const UrlShortenerPage = () => {
         navigator.clipboard.writeText(url);
         setAlert({
             open: true,
-            message: 'URL copied to clipboard',
+            message: '📋 URL copied to clipboard!',
             severity: 'success'
         });
         Logger.info('URL copied to clipboard');
@@ -182,6 +187,7 @@ const UrlShortenerPage = () => {
                 </Typography>
                 
                 <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+                    {/* The main form for entering URLs to shorten */}
                     <form onSubmit={handleSubmit}>
                         {urlInputs.map((input, index) => (
                             <Box key={index} mb={3}>
@@ -193,113 +199,96 @@ const UrlShortenerPage = () => {
                                     </Grid>
                                     
                                     <Grid item xs={12}>
+                                        {/* Input for the long URL */}
                                         <TextField
-                                            fullWidth
                                             label="Long URL"
-                                            placeholder="https://example.com/very/long/url"
                                             value={input.longUrl}
-                                            onChange={(e) => handleInputChange(index, 'longUrl', e.target.value)}
+                                            onChange={e => handleInputChange(index, 'longUrl', e.target.value)}
+                                            fullWidth
                                             required
+                                            placeholder="Paste your long link here..."
+                                            margin="normal"
                                         />
                                     </Grid>
-                                    
-                                    <Grid item xs={6}>
+                                    <Grid item xs={5} sm={4}>
+                                        {/* Input for custom shortcode */}
                                         <TextField
-                                            fullWidth
-                                            label="Custom Shortcode (optional)"
-                                            placeholder="e.g., mylink"
+                                            label="Shortcode (optional)"
                                             value={input.shortcode}
-                                            onChange={(e) => handleInputChange(index, 'shortcode', e.target.value)}
-                                            helperText="4-10 alphanumeric characters"
-                                        />
-                                    </Grid>
-                                    
-                                    <Grid item xs={5}>
-                                        <TextField
+                                            onChange={e => handleInputChange(index, 'shortcode', e.target.value)}
                                             fullWidth
-                                            label="Expiry (minutes)"
-                                            type="number"
-                                            value={input.expiryMinutes}
-                                            onChange={(e) => handleInputChange(index, 'expiryMinutes', e.target.value)}
-                                            helperText="Default: 30 minutes"
+                                            placeholder="e.g. mylink123"
+                                            margin="normal"
                                         />
                                     </Grid>
-                                    
-                                    <Grid item xs={1}>
+                                    <Grid item xs={5} sm={4}>
+                                        {/* Input for expiry time */}
+                                        <TextField
+                                            label="Expiry (minutes)"
+                                            value={input.expiryMinutes}
+                                            onChange={e => handleInputChange(index, 'expiryMinutes', e.target.value)}
+                                            fullWidth
+                                            type="number"
+                                            inputProps={{ min: 1 }}
+                                            margin="normal"
+                                        />
+                                    </Grid>
+                                    <Grid item xs={2} sm={2}>
+                                        {/* Remove button for this input */}
                                         {urlInputs.length > 1 && (
-                                            <IconButton 
-                                                color="error" 
-                                                onClick={() => removeUrlInput(index)}
-                                                aria-label="Remove URL"
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
+                                            <Tooltip title="Remove this URL input">
+                                                <IconButton onClick={() => removeUrlInput(index)} color="error">
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </Tooltip>
                                         )}
                                     </Grid>
                                 </Grid>
-                                
-                                {index < urlInputs.length - 1 && (
-                                    <Divider sx={{ my: 2 }} />
-                                )}
+                                <Divider sx={{ my: 2 }} />
                             </Box>
                         ))}
-                        
-                        <Box display="flex" justifyContent="space-between" mt={2}>
+                        <Box display="flex" justifyContent="space-between" alignItems="center">
                             <Button
+                                variant="outlined"
                                 startIcon={<AddIcon />}
                                 onClick={addUrlInput}
                                 disabled={urlInputs.length >= 5}
-                                variant="outlined"
                             >
-                                Add URL
+                                Add Another URL
                             </Button>
-                            
                             <Button
                                 type="submit"
                                 variant="contained"
                                 color="primary"
+                                size="large"
                             >
                                 Shorten URLs
                             </Button>
                         </Box>
                     </form>
                 </Paper>
-                
+
+                {/* Show shortened URLs after submission */}
                 {shortenedUrls.length > 0 && (
-                    <Paper elevation={3} sx={{ p: 3 }}>
+                    <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
                         <Typography variant="h6" gutterBottom>
-                            Shortened URLs
+                            Here are your shiny new short links:
                         </Typography>
-                        
                         <List>
-                            {shortenedUrls.map((url, index) => (
-                                <ListItem key={index} divider={index < shortenedUrls.length - 1}>
+                            {shortenedUrls.map((url, idx) => (
+                                <ListItem key={idx} secondaryAction={
+                                    <Tooltip title="Copy to clipboard">
+                                        <IconButton edge="end" onClick={() => copyToClipboard(url.shortUrl)}>
+                                            <ContentCopyIcon />
+                                        </IconButton>
+                                    </Tooltip>
+                                }>
                                     <ListItemText
-                                        primary={
-                                            <Box display="flex" alignItems="center">
-                                                <Typography variant="body1" component="span">
-                                                    {url.shortUrl}
-                                                </Typography>
-                                                <Tooltip title="Copy to clipboard">
-                                                    <IconButton 
-                                                        size="small" 
-                                                        onClick={() => copyToClipboard(url.shortUrl)}
-                                                        sx={{ ml: 1 }}
-                                                    >
-                                                        <ContentCopyIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </Box>
-                                        }
+                                        primary={url.shortUrl}
                                         secondary={
                                             <>
-                                                <Typography variant="body2" component="span" color="textSecondary">
-                                                    Original: {url.originalUrl}
-                                                </Typography>
-                                                <br />
-                                                <Typography variant="body2" component="span" color="textSecondary">
-                                                    Expires: {formatDate(url.expiresAt)}
-                                                </Typography>
+                                                <span>Original: {url.originalUrl}</span><br />
+                                                <span>Expires: {formatDate(url.expiresAt)}</span>
                                             </>
                                         }
                                     />
@@ -308,14 +297,10 @@ const UrlShortenerPage = () => {
                         </List>
                     </Paper>
                 )}
-                
-                <Snackbar 
-                    open={alert.open} 
-                    autoHideDuration={6000} 
-                    onClose={handleCloseAlert}
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                >
-                    <Alert onClose={handleCloseAlert} severity={alert.severity}>
+
+                {/* Snackbar for alerts */}
+                <Snackbar open={alert.open} autoHideDuration={4000} onClose={handleCloseAlert}>
+                    <Alert onClose={handleCloseAlert} severity={alert.severity} sx={{ width: '100%' }}>
                         {alert.message}
                     </Alert>
                 </Snackbar>

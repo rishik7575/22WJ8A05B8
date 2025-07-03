@@ -1,3 +1,7 @@
+// server.js - Main Express server for the Logger Dashboard
+// Author: Rishik (and a little help from friends)
+// This file handles log forwarding to the evaluation service and serves the dashboard UI.
+
 const express = require('express');
 const path = require('path');
 
@@ -7,8 +11,10 @@ const PORT = 3000;
 app.use(express.json());
 app.use(express.static('.'));
 
+// NOTE: In a real app, never hardcode tokens! This is just for demo/testing.
 const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJyaXNoaWttYWR1cmlAZ21haWwuY29tIiwiZXhwIjoxNzUxNTI4MTAwLCJpYXQiOjE3NTE1MjcyMDAsImlzcyI6IkFmZm9yZCBNZWRpY2FsIFRlY2hub2xvZ2llcyBQcml2YXRlIExpbWl0ZWQiLCJqdGkiOiIxMGNmNThjMC05YTVmLTRmOGItYmI2Ni04MTk5YTE4YzE5MWQiLCJsb2NhbGUiOiJlbi1JTiIsIm5hbWUiOiJyaXNoaWsgdmVua2F0IHNoaXZhIHNhaSBtYWR1cmkiLCJzdWIiOiI5NzcwNTQ1MS0yOGFjLTRjNzctOTQyNC05ZWQyOWFkYTU2NTMifSwiZW1haWwiOiJyaXNoaWttYWR1cmlAZ21haWwuY29tIiwibmFtZSI6InJpc2hpayB2ZW5rYXQgc2hpdmEgc2FpIG1hZHVyaSIsInJvbGxObyI6IjIyd2o4YTA1YjgiLCJhY2Nlc3NDb2RlIjoiUGJtVkFUIiwiY2xpZW50SUQiOiI5NzcwNTQ1MS0yOGFjLTRjNzctOTQyNC05ZWQyOWFkYTU2NTMiLCJjbGllbnRTZWNyZXQiOiJ2VnZrdkZjRHBhanF0ZFpIIn0.AI2WgNL8hmWC9Dgh99ws6hEsqg1xoLj6tWLVnP-rRpc";
 
+// Helper to send logs to the evaluation service
 async function sendLog(stackName, severity, pkgName, logMsg) {
     const apiUrl = "http://20.244.56.144/evaluation-service/logs";
     
@@ -20,7 +26,7 @@ async function sendLog(stackName, severity, pkgName, logMsg) {
     };
 
     if (!authToken) {
-        throw new Error("No authentication token");
+        throw new Error("❌ Oops! No authentication token found. Please check your config.");
     }
 
     try {
@@ -37,17 +43,19 @@ async function sendLog(stackName, severity, pkgName, logMsg) {
             return { success: true, data: dataToSend };
         } else {
             const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
+            throw new Error(`Server said no (HTTP ${response.status}): ${errorText}`);
         }
     } catch (error) {
-        throw new Error(`Failed to send log: ${error.message}`);
+        throw new Error(`Couldn't send log: ${error.message}`);
     }
 }
 
+// Serve the main dashboard/test page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// API endpoint to receive logs from the UI
 app.post('/api/log', async (req, res) => {
     try {
         const { stack, level, package: pkg, message } = req.body;
@@ -59,17 +67,18 @@ app.post('/api/log', async (req, res) => {
         }
 
         const result = await sendLog(stack, level, pkg, message);
-        res.json({ success: true, message: 'Log sent successfully', data: result.data });
+        res.json({ success: true, message: '🎉 Log sent successfully!', data: result.data });
         
     } catch (error) {
-        console.error('Error sending log:', error.message);
+        console.error('💥 Error sending log:', error.message);
         res.status(500).json({ 
-            error: 'Failed to send log', 
+            error: 'Something went wrong while sending the log.', 
             details: error.message 
         });
     }
 });
 
+// Fun test endpoint to send a bunch of logs
 app.get('/api/test', async (req, res) => {
     try {
         const testLogs = [
@@ -91,10 +100,11 @@ app.get('/api/test', async (req, res) => {
 
         res.json({ results });
     } catch (error) {
-        res.status(500).json({ error: 'Test failed', details: error.message });
+        res.status(500).json({ error: 'Test failed (yikes!)', details: error.message });
     }
 });
 
+// TODO: Add authentication middleware if this ever goes to production!
 app.listen(PORT, () => {
     console.log(`🚀 Logger server running at http://localhost:${PORT}`);
     console.log(`📋 Test endpoint: http://localhost:${PORT}/api/test`);

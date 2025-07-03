@@ -3,6 +3,11 @@ import { useParams, Navigate } from 'react-router-dom';
 import { Container, Typography, Box, CircularProgress } from '@mui/material';
 import Logger from '../utils/logger';
 
+// RedirectHandler.jsx - Handles redirecting short URLs
+// This file is the traffic cop for your links.
+// Written by a human (with coffee)
+// TODO: Handle 404s more gracefully!
+
 const RedirectHandler = () => {
     const { shortcode } = useParams();
     const [destination, setDestination] = useState(null);
@@ -19,7 +24,7 @@ const RedirectHandler = () => {
                 const urlData = urls.find(url => url.shortcode === shortcode);
                 
                 if (!urlData) {
-                    setError('Short URL not found');
+                    setError('😕 Short URL not found. Double-check your link!');
                     setLoading(false);
                     Logger.error(`Redirect failed: Short URL with code ${shortcode} not found`);
                     return;
@@ -27,7 +32,7 @@ const RedirectHandler = () => {
                 
                 // Check if URL is expired
                 if (new Date() > new Date(urlData.expiresAt)) {
-                    setError('This short URL has expired');
+                    setError('⏰ This short URL has expired. Time to make a new one!');
                     setLoading(false);
                     Logger.warn(`Redirect failed: Short URL with code ${shortcode} has expired`);
                     return;
@@ -60,7 +65,7 @@ const RedirectHandler = () => {
                 setDestination(urlData.originalUrl);
                 Logger.info(`Redirecting to ${urlData.originalUrl} from shortcode ${shortcode}`);
             } catch (error) {
-                setError('An error occurred while processing the redirect');
+                setError('💥 An error occurred while processing the redirect. Try again later!');
                 Logger.error(`Redirect error: ${error.message}`);
             } finally {
                 setLoading(false);
@@ -85,7 +90,7 @@ const RedirectHandler = () => {
                 >
                     <CircularProgress size={60} />
                     <Typography variant="h6" sx={{ mt: 2 }}>
-                        Redirecting...
+                        Redirecting you to your destination...
                     </Typography>
                 </Box>
             </Container>

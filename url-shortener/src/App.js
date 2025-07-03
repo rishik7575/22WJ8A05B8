@@ -9,7 +9,7 @@ import UrlStatisticsPage from './components/UrlStatisticsPage';
 import RedirectHandler from './components/RedirectHandler';
 import Logger from './utils/logger';
 
-// Create a theme
+// Create a Material UI theme for a friendly look
 const theme = createTheme({
   palette: {
     primary: {
@@ -21,21 +21,28 @@ const theme = createTheme({
   },
 });
 
+// App.js - Main React app for the URL Shortener
+// This is where the magic starts.
+// Written by a human (who likes short links)
+// TODO: Add a settings page!
+
 function App() {
-  // Log application start
+  // Log application start (just for fun)
   React.useEffect(() => {
-    Logger.info('URL Shortener application started');
+    Logger.info('🚀 URL Shortener application started');
   }, []);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
+        {/* AppBar is the friendly blue bar at the top */}
         <AppBar position="static">
           <Toolbar>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               URL Shortener
             </Typography>
+            {/* Navigation buttons */}
             <Button color="inherit" component={Link} to="/">
               Shorten URLs
             </Button>
@@ -47,6 +54,7 @@ function App() {
         
         <Container>
           <Box my={4}>
+            {/* Define the routes for the app */}
             <Routes>
               <Route path="/" element={<UrlShortenerPage />} />
               <Route path="/statistics" element={<UrlStatisticsPage />} />

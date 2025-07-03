@@ -11,6 +11,10 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { formatDate } from '../utils/validators';
 import Logger from '../utils/logger';
 
+// UrlStatisticsPage.jsx - Page for viewing all your shortened URLs and their stats
+// This page is your analytics dashboard for short links!
+// Written by a human (who likes numbers)
+
 // Row component for expandable table
 const UrlRow = ({ url, onCopy }) => {
     const [open, setOpen] = useState(false);
@@ -77,7 +81,7 @@ const UrlRow = ({ url, onCopy }) => {
                             
                             {url.clickDetails.length === 0 ? (
                                 <Typography variant="body2" color="textSecondary">
-                                    No clicks recorded yet
+                                    No clicks recorded yet. Share your link to see some stats!
                                 </Typography>
                             ) : (
                                 <Table size="small" aria-label="click details">
@@ -137,7 +141,7 @@ const UrlStatisticsPage = () => {
                     totalClicks
                 });
                 
-                Logger.info('URL statistics loaded from localStorage');
+                Logger.info('📊 URL statistics loaded from localStorage');
             } catch (error) {
                 Logger.error(`Error loading URLs: ${error.message}`);
             }
@@ -158,7 +162,7 @@ const UrlStatisticsPage = () => {
                 <Typography variant="h4" component="h1" gutterBottom align="center">
                     URL Statistics
                 </Typography>
-                
+                {/* Show some fun stats at the top */}
                 <Grid container spacing={3} sx={{ mb: 4 }}>
                     <Grid item xs={12} sm={6} md={3}>
                         <Card>
@@ -198,49 +202,42 @@ const UrlStatisticsPage = () => {
                             </CardContent>
                         </Card>
                     </Grid>
-                    
                     <Grid item xs={12} sm={6} md={3}>
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
                                     Total Clicks
                                 </Typography>
-                                <Typography variant="h4" color="primary.main">
+                                <Typography variant="h4">
                                     {stats.totalClicks}
                                 </Typography>
                             </CardContent>
                         </Card>
                     </Grid>
                 </Grid>
-                
+                {/* Table of all URLs */}
                 <Paper elevation={3}>
                     <TableContainer>
-                        <Table aria-label="collapsible table">
+                        <Table>
                             <TableHead>
                                 <TableRow>
                                     <TableCell />
                                     <TableCell>Short URL</TableCell>
                                     <TableCell align="center">Status</TableCell>
                                     <TableCell align="center">Clicks</TableCell>
-                                    <TableCell>Timestamps</TableCell>
+                                    <TableCell>Dates</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {urls.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={5} align="center">
-                                            <Typography variant="body1" sx={{ py: 2 }}>
-                                                No shortened URLs yet. Create some on the URL Shortener page.
-                                            </Typography>
+                                            No URLs found. Go shorten some links!
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    urls.map((url, index) => (
-                                        <UrlRow 
-                                            key={index} 
-                                            url={url} 
-                                            onCopy={copyToClipboard} 
-                                        />
+                                    urls.map((url, idx) => (
+                                        <UrlRow key={idx} url={url} onCopy={copyToClipboard} />
                                     ))
                                 )}
                             </TableBody>

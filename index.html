@@ -5,20 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logger Test Page</title>
 
+    <!-- This page is for testing the logger. Style it up if you want! -->
     <!-- Might add CSS later if needed -->
 </head>
 <body>
     <h1>Logger Test</h1>
-    <p>Open console to see what’s going on with the logs.</p>
+    <p>Open your browser console to see the logs in action. Try sending a log below!</p>
 
     <!-- Including logger file -->
     <script src="logger.js"></script>
 
     <!-- Quick inline test - can remove later -->
     <script>
-        console.log("Test page loaded, trying out logger...");
+        console.log("🎉 Test page loaded! Let's try out the logger...");
 
         // Just checking if I can trigger a log from here
+        // This will send a test log to the backend (if logger.js is set up)
         sendLog("frontend", "info", "test-page", "Test log from inline script");
     </script>
 
