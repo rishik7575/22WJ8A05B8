@@ -1,61 +1,83 @@
-// logger.js
+const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJyaXNoaWttYWR1cmlAZ21haWwuY29tIiwiZXhwIjoxNzUxNTI5NDM5LCJpYXQiOjE3NTE1Mjg1MzksImlzcyI6IkFmZm9yZCBNZWRpY2FsIFRlY2hub2xvZ2llcyBQcml2YXRlIExpbWl0ZWQiLCJqdGkiOiIxMjY2NGQ3Ny1hOGE1LTQ0ODMtOTRiOS1mMTg1NGY4MTI2MmEiLCJsb2NhbGUiOiJlbi1JTiIsIm5hbWUiOiJyaXNoaWsgdmVua2F0IHNoaXZhIHNhaSBtYWR1cmkiLCJzdWIiOiI5NzcwNTQ1MS0yOGFjLTRjNzctOTQyNC05ZWQyOWFkYTU2NTMifSwiZW1haWwiOiJyaXNoaWttYWR1cmlAZ21haWwuY29tIiwibmFtZSI6InJpc2hpayB2ZW5rYXQgc2hpdmEgc2FpIG1hZHVyaSIsInJvbGxObyI6IjIyd2o4YTA1YjgiLCJhY2Nlc3NDb2RlIjoiUGJtVkFUIiwiY2xpZW50SUQiOiI5NzcwNTQ1MS0yOGFjLTRjNzctOTQyNC05ZWQyOWFkYTU2NTMiLCJjbGllbnRTZWNyZXQiOiJ2VnZrdkZjRHBhanF0ZFpIIn0.9Tc9PLhmCqAGyXJTTxPdaag1kMs7xCW19oi3-Bc-u7Q";
 
-// NOTE: This is the auth token I grabbed during setup.
-// TODO: Store securely later maybe?
-const authToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJyaXNoaWttYWR1cmlAZ21haWwuY29tIiwiZXhwIjoxNzUxNTI4MTAwLCJpYXQiOjE3NTE1MjcyMDAsImlzcyI6IkFmZm9yZCBNZWRpY2FsIFRlY2hub2xvZ2llcyBQcml2YXRlIExpbWl0ZWQiLCJqdGkiOiIxMGNmNThjMC05YTVmLTRmOGItYmI2Ni04MTk5YTE4YzE5MWQiLCJsb2NhbGUiOiJlbi1JTiIsIm5hbWUiOiJyaXNoaWsgdmVua2F0IHNoaXZhIHNhaSBtYWR1cmkiLCJzdWIiOiI5NzcwNTQ1MS0yOGFjLTRjNzctOTQyNC05ZWQyOWFkYTU2NTMifSwiZW1haWwiOiJyaXNoaWttYWR1cmlAZ21haWwuY29tIiwibmFtZSI6InJpc2hpayB2ZW5rYXQgc2hpdmEgc2FpIG1hZHVyaSIsInJvbGxObyI6IjIyd2o4YTA1YjgiLCJhY2Nlc3NDb2RlIjoiUGJtVkFUIiwiY2xpZW50SUQiOiI5NzcwNTQ1MS0yOGFjLTRjNzctOTQyNC05ZWQyOWFkYTU2NTMiLCJjbGllbnRTZWNyZXQiOiJ2VnZrdkZjRHBhanF0ZFpIIn0.AI2WgNL8hmWC9Dgh99ws6hEsqg1xoLj6tWLVnP-rRpc";
-
-// Function to log stuff to the service
-async function sendLog(stackName, severity, pkgName, logMsg) {
-    // I hardcoded this — might want to move to config later
+async function sendLog(stack, level, packageName, message) {
     const apiUrl = "http://20.244.56.144/evaluation-service/logs";
 
-    // Lowercase everything since the API is picky
-    let stackLower = stackName.toLowerCase();
-    let levelLower = severity.toLowerCase();
-    let pkgLower = pkgName.toLowerCase();
+    if (!authToken) {
+        console.error("❌ No authentication token");
+        return false;
+    }
 
-    const dataToSend = {
-        stack: stackLower,
-        level: levelLower,
-        package: pkgLower,
-        message: logMsg
+    // Validate package names based on stack
+    const validPackages = {
+        "backend": ["auth"],
+        "frontend": ["component"]
     };
 
-    if (!authToken) {
-        console.error("No token! Can't send log.");
-        return;
+    const normalizedStack = stack.toLowerCase();
+    const normalizedPackage = packageName.toLowerCase();
+
+    // Check if the stack and package combination is valid
+    if (!validPackages[normalizedStack] || !validPackages[normalizedStack].includes(normalizedPackage)) {
+        console.error(`❌ Invalid package "${normalizedPackage}" for stack "${normalizedStack}"`);
+        console.error(`   Valid packages for ${normalizedStack}: ${validPackages[normalizedStack].join(", ")}`);
+        return false;
     }
 
     try {
-        const res = await fetch(apiUrl, {
+        const payload = {
+            stack: normalizedStack,
+            level: level.toLowerCase(),
+            package: normalizedPackage,
+            message: message
+        };
+
+        const response = await fetch(apiUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${authToken}`
             },
-            body: JSON.stringify(dataToSend)
+            body: JSON.stringify(payload)
         });
 
-        if (res.ok) {
-            console.log("Log sent:", dataToSend);
+        if (response.ok) {
+            console.log("✅ Log sent:", payload);
+            return true;
         } else {
-            const errMsg = await res.text();
-            console.error(`Log failed: ${res.status} - ${errMsg}`);
-            if (res.status === 401) {
-                console.warn("Hmm, token expired? Might need to refresh it.");
-                // NOTE: Auto-refresh not implemented yet
-            }
+            const errorText = await response.text();
+            console.error(`❌ Log failed: ${response.status} - ${errorText}`);
+            return false;
         }
-    } catch (e) {
-        console.error("Something went wrong sending log:", e);
+    } catch (error) {
+        console.error("💥 Error sending log:", error.message);
+        return false;
     }
 }
 
-// Example usage below — testing one at a time to find valid combinations
-console.log("Testing basic combinations...");
+console.log("🚀 Testing logger with valid package names...\n");
 
-// Try the most basic possible combinations
-sendLog("frontend", "info", "test", "Test message 1");
-sendLog("backend", "error", "test", "Test message 2");
-sendLog("frontend", "debug", "app", "Test message 3");
-sendLog("backend", "warn", "app", "Test message 4");
+// Only use valid packages for each stack
+const testCases = [
+    // Backend packages - only "auth" is valid
+    { stack: "backend", level: "error", package: "auth", message: "Authentication error occurred" },
+    { stack: "backend", level: "info", package: "auth", message: "User authenticated successfully" },
+    { stack: "backend", level: "debug", package: "auth", message: "Auth token validated" },
+    { stack: "backend", level: "warn", package: "auth", message: "Authentication warning" },
+
+    // Frontend packages - only "component" is valid
+    { stack: "frontend", level: "info", package: "component", message: "Component initialized" },
+    { stack: "frontend", level: "error", package: "component", message: "Component failed to render" },
+    { stack: "frontend", level: "debug", package: "component", message: "Component rendered" },
+    { stack: "frontend", level: "warn", package: "component", message: "Component deprecation warning" }
+];
+
+async function runTests() {
+    for (const test of testCases) {
+        console.log(`Testing: ${test.stack} - ${test.level} - ${test.package}`);
+        await sendLog(test.stack, test.level, test.package, test.message);
+        console.log(""); // Add spacing
+    }
+}
+
+runTests();
